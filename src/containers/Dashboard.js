@@ -93,25 +93,40 @@ export default class {
   };
 
   handleEditTicket(e, bill, bills) {
-    if (this.billCounter === undefined || this.id !== bill.id)
-      this.billCounter = 0;
-    if (this.id === undefined || this.id !== bill.id) this.id = bill.id;
-    if (this.billCounter % 2 === 0) {
-      bills.forEach((b) => {
-        $(`#open-bill${b.id}`).css({ background: '#0D5AE5' });
-      });
-      $(`#open-bill${bill.id}`).css({ background: '#2A2B35' });
-      $('.dashboard-right-container div').html(DashboardFormUI(bill));
-      $('.vertical-navbar').css({ height: '150vh' });
-      this.billCounter++;
-    } else {
+    // console.log('handleEditTicket called');
+    // console.log('bill.id:', bill.id);
+    // console.log('currentOpenBillId:', this.currentOpenBillId);
+    // console.log('isCurrentlyOpen:', this.currentOpenBillId === bill.id);
+    // Vérifier si ce ticket est déjà ouvert
+    const isCurrentlyOpen = this.currentOpenBillId === bill.id;
+
+    if (isCurrentlyOpen) {
+      // FERMER le ticket actuellement ouvert
       $(`#open-bill${bill.id}`).css({ background: '#0D5AE5' });
       $('.dashboard-right-container div').html(`
       <div id="big-billed-icon" data-testid="big-billed-icon"> ${BigBilledIcon} </div>
     `);
       $('.vertical-navbar').css({ height: '120vh' });
-      this.billCounter++;
+      this.currentOpenBillId = null;
+    } else {
+      // OUVRIR ce ticket (et fermer l'ancien)
+
+      // Réinitialiser les couleurs de TOUS les tickets
+      bills.forEach((b) => {
+        $(`#open-bill${b.id}`).css({ background: '#0D5AE5' });
+      });
+
+      // Mettre en surbrillance le ticket actuel
+      $(`#open-bill${bill.id}`).css({ background: '#2A2B35' });
+
+      // Afficher le formulaire
+      $('.dashboard-right-container div').html(DashboardFormUI(bill));
+      $('.vertical-navbar').css({ height: '150vh' });
+
+      // Stocker l'ID du ticket ouvert
+      this.currentOpenBillId = bill.id;
     }
+
     $('#icon-eye-d').click(this.handleClickIconEye);
     $('#btn-accept-bill').click((e) => this.handleAcceptSubmit(e, bill));
     $('#btn-refuse-bill').click((e) => this.handleRefuseSubmit(e, bill));
@@ -140,6 +155,7 @@ export default class {
   handleShowTickets(e, bills, index) {
     if (this.counters === undefined) this.counters = {};
     if (this.counters[index] === undefined) this.counters[index] = 0;
+
     if (this.counters[index] % 2 === 0) {
       $(`#arrow-icon${index}`).css({ transform: 'rotate(0deg)' });
       $(`#status-bills-container${index}`).html(
@@ -152,6 +168,12 @@ export default class {
       this.counters[index]++;
     }
 
+    // DÉTACHER les anciens événements AVANT d'en attacher de nouveaux
+    bills.forEach((bill) => {
+      $(`#open-bill${bill.id}`).off('click');
+    });
+
+    // Attacher les nouveaux événements
     bills.forEach((bill) => {
       $(`#open-bill${bill.id}`).click((e) =>
         this.handleEditTicket(e, bill, bills)
