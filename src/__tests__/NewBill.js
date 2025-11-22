@@ -58,5 +58,73 @@ describe('Given I am connected as an employee', () => {
       expect(event.target.value).toBe('');
     });
     // FIN TEST_1_INVALID_FILE_EXTENSION
+
+    //---------------------------------------------------------------------------------------//
+
+    // DEBUT TEST_2_VALID_FILE_EXTENSION
+    test('Then uploading a file with valid extension should be accepted', async () => {
+      // GIVEN
+      document.body.innerHTML = NewBillUI();
+
+      window.localStorage.setItem(
+        'user',
+        JSON.stringify({
+          email: 'employee@test.com',
+        })
+      );
+
+      window.alert = jest.fn();
+
+      // Mock du store (version corrigée)
+      const mockCreate = jest.fn().mockResolvedValue({
+        fileUrl: 'https://localhost:3456/images/test.jpg',
+        key: '1234',
+      });
+
+      const mockBills = {
+        create: mockCreate,
+      };
+
+      const store = {
+        bills: jest.fn(() => mockBills),
+      };
+
+      const newBillInstance = new NewBill({
+        document,
+        onNavigate: jest.fn(),
+        store: store,
+        localStorage: window.localStorage,
+      });
+
+      // WHEN
+      const fileInput = screen.getByTestId('file');
+
+      const file = new File(['contenu'], 'facture.jpeg', {
+        type: 'image/jpeg',
+      });
+
+      Object.defineProperty(fileInput, 'files', {
+        value: [file],
+      });
+
+      const event = {
+        preventDefault: jest.fn(),
+        target: {
+          value: 'C:\\fakepath\\facture.jpeg',
+        },
+      };
+
+      newBillInstance.handleChangeFile(event);
+
+      // Attendre que la Promise soit résolue
+      await new Promise(process.nextTick);
+
+      // THEN
+      expect(window.alert).not.toHaveBeenCalled();
+      expect(event.target.value).not.toBe('');
+      expect(mockCreate).toHaveBeenCalled(); // ← Changé ici !
+    });
+    // FIN TEST_2_VALID_FILE_EXTENSION
+    //---------------------------------------------------------------------------------------//
   });
 });
