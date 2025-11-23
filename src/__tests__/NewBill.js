@@ -255,5 +255,22 @@ describe('Given I am connected as an employee', () => {
       expect(mockCreate).toHaveBeenCalled();
     });
     // FIN TEST_2C_PNG_FILE_EXTENSION
+    // DEBUT TEST_3_HANDLE_SUBMIT
+    describe('When I submit the form with valid data', () => {
+      test('Then it should create a bill and navigate to Bills page', () => {
+        // GIVEN
+        // 1. Créer le HTML du formulaire
+        // 2. Remplir les champs du formulaire
+        // 3. Créer une instance de NewBill avec mocks
+        // 4. Mocker updateBill
+        // WHEN
+        // 1. Récupérer le formulaire
+        // 2. Déclencher l'événement submit
+        // THEN
+        // 1. Vérifier que updateBill a été appelé
+        // 2. Vérifier que updateBill a reçu les bonnes données
+        // 3. Vérifier la navigation vers Bills
+      });
+    });
   });
 });
