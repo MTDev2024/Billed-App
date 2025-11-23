@@ -12,25 +12,46 @@ import router from '../app/Router.js';
 
 describe('Given I am connected as an employee', () => {
   describe('When I am on Bills Page', () => {
+    //----------------------------------------------------------------------------------//
+    // DEBUT TEST BILL ICON
     test('Then bill icon in vertical layout should be highlighted', async () => {
+      // GIVEN : Je suis connecté en tant qu'employé
+      // On simule localStorage
       Object.defineProperty(window, 'localStorage', {
         value: localStorageMock,
       });
+
+      // On stocke les infos d'un utilisateur de type "Employee"
       window.localStorage.setItem(
         'user',
         JSON.stringify({
           type: 'Employee',
         })
       );
+
+      // Création conteneur principal dans le DOM
       const root = document.createElement('div');
       root.setAttribute('id', 'root');
       document.body.append(root);
+
+      // Initialisation du routeur
       router();
+
+      // WHEN : Je navigue sur la page Bills
       window.onNavigate(ROUTES_PATH.Bills);
+
+      // Attente chargement icône "window" (facture) dans le DOM
       await waitFor(() => screen.getByTestId('icon-window'));
-      // const windowIcon = screen.getByTestId('icon-window');
-      //to-do write expect expression
+
+      // Récupération icône "window" depuis le DOM
+      const windowIcon = screen.getByTestId('icon-window');
+
+      // THEN : L'icône devrait être mise en surbrillance
+      // Vérification que l'icône possède la classe CSS 'active-icon'
+      expect(windowIcon.classList.contains('active-icon')).toBeTruthy();
     });
+    // FIN TEST BILL ICON
+    //----------------------------------------------------------------------------------//
     test('Then bills should be ordered from earliest to latest', () => {
       document.body.innerHTML = BillsUI({ data: bills });
       const dates = screen
@@ -42,7 +63,7 @@ describe('Given I am connected as an employee', () => {
       const datesSorted = [...dates].sort(antiChrono);
       expect(dates).toEqual(datesSorted);
     });
-
+    //----------------------------------------------------------------------------------//
     // DEBUT TEST_1_NEW_BILL_BUTTON_NAVIGATION
     test("Then clicking on 'Nouvelle note de frais' button should navigate to NewBill page", () => {
       // GIVEN
@@ -73,7 +94,7 @@ describe('Given I am connected as an employee', () => {
       expect(onNavigate).toHaveBeenCalledWith(ROUTES_PATH['NewBill']);
     });
     // FIN TEST_1_NEW_BILL_BUTTON_NAVIGATION
-    //----------------------------------------//
+    //----------------------------------------------------------------------------------//
     // DEBUT TEST_2_ICON_EYE_MODAL_DISPLAY
     test('Then a modal should open with the bill image', () => {
       // GIVEN
