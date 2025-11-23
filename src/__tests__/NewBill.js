@@ -5,6 +5,7 @@
 import { screen, fireEvent } from '@testing-library/dom';
 import NewBillUI from '../views/NewBillUI.js';
 import NewBill from '../containers/NewBill.js';
+import { ROUTES_PATH } from '../constants/routes.js';
 
 describe('Given I am connected as an employee', () => {
   describe('When I am on NewBill Page', () => {
@@ -258,19 +259,91 @@ describe('Given I am connected as an employee', () => {
     // DEBUT TEST_3_HANDLE_SUBMIT
     describe('When I submit the form with valid data', () => {
       test('Then it should create a bill and navigate to Bills page', () => {
-        // GIVEN
-        // 1. Créer le HTML du formulaire
-        // 2. Remplir les champs du formulaire
-        // 3. Créer une instance de NewBill avec mocks
-        // 4. Mocker updateBill
-        // WHEN
-        // 1. Récupérer le formulaire
-        // 2. Déclencher l'événement submit
-        // THEN
-        // 1. Vérifier que updateBill a été appelé
-        // 2. Vérifier que updateBill a reçu les bonnes données
-        // 3. Vérifier la navigation vers Bills
+        //---------------------------------------------------------------------------------------//
       });
     });
   });
+  // DEBUT TEST_3_HANDLE_SUBMIT
+  describe('When I submit the new bill form', () => {
+    test('Then it should create a bill and navigate to Bills page', () => {
+      // GIVEN : Je suis sur la page NewBill avec un formulaire rempli
+      // 1. Creation HTML formulaire
+      document.body.innerHTML = NewBillUI();
+
+      // 2. Simulation utilisateur connecté dans localStorage
+      window.localStorage.setItem(
+        'user',
+        JSON.stringify({
+          email: 'employee@test.com',
+        })
+      );
+
+      // 3. Creation mocks onNavigate & updateBill
+      const onNavigate = jest.fn();
+
+      // 4. Creation instance de NewBill
+      const newBillInstance = new NewBill({
+        document,
+        onNavigate: onNavigate,
+        store: null,
+        localStorage: window.localStorage,
+      });
+
+      // 5. Mock méthode updateBill
+      newBillInstance.updateBill = jest.fn();
+
+      // 6. Simulation upload fichier valide effectué
+      newBillInstance.fileUrl = 'https://localhost:3456/images/test.jpg';
+      newBillInstance.fileName = 'test.jpg';
+
+      // 7. Remplissage champs formulaire
+      screen.getByTestId('expense-type').value = 'Transports';
+      screen.getByTestId('expense-name').value = 'Vol Paris-Londres';
+      screen.getByTestId('datepicker').value = '2024-04-15';
+      screen.getByTestId('amount').value = '348';
+      screen.getByTestId('vat').value = '70';
+      screen.getByTestId('pct').value = '20';
+      screen.getByTestId('commentary').value = 'Déplacement professionnel';
+
+      // WHEN : Je soumets le formulaire
+      // 1. Récuperation formulaire
+      const form = screen.getByTestId('form-new-bill');
+
+      // 2. Création événement submit
+      const handleSubmit = jest.fn((e) => newBillInstance.handleSubmit(e));
+
+      // 3. Ajout ecouteur d'événement
+      form.addEventListener('submit', handleSubmit);
+
+      // 4. Déclenchement soumission formulaire
+      fireEvent.submit(form);
+
+      // THEN : La bill devrait être créée et je devrais naviguer vers Bills
+      // 1. Verification que handleSubmit appelé
+      expect(handleSubmit).toHaveBeenCalled();
+
+      // 2. Verification que updateBill appelé
+      expect(newBillInstance.updateBill).toHaveBeenCalled();
+
+      // 3. Verification que updateBill a reçu les bonnes données
+      expect(newBillInstance.updateBill).toHaveBeenCalledWith({
+        email: 'employee@test.com',
+        type: 'Transports',
+        name: 'Vol Paris-Londres',
+        amount: 348,
+        date: '2024-04-15',
+        vat: '70',
+        pct: 20,
+        commentary: 'Déplacement professionnel',
+        fileUrl: 'https://localhost:3456/images/test.jpg',
+        fileName: 'test.jpg',
+        status: 'pending',
+      });
+
+      // 4. Verification navigation vers page Bills
+      expect(onNavigate).toHaveBeenCalledWith(ROUTES_PATH['Bills']);
+    });
+  });
+  // FIN TEST_3_HANDLE_SUBMIT
+  //---------------------------------------------------------------------------------------//
 });
