@@ -7,6 +7,9 @@ import NewBillUI from '../views/NewBillUI.js';
 import NewBill from '../containers/NewBill.js';
 import { ROUTES_PATH } from '../constants/routes.js';
 
+//----------------------------------------------------------------//
+//-----------------------TESTS UNITAIRES--------------------------//
+//----------------------------------------------------------------//
 describe('Given I am connected as an employee', () => {
   describe('When I am on NewBill Page', () => {
     // DEBUT TEST_1_INVALID_FILE_EXTENSION
@@ -48,7 +51,7 @@ describe('Given I am connected as an employee', () => {
         },
       };
 
-      // 5. Appeler handleChangeFile
+      // 5. Appel handleChangeFile
       newBillInstance.handleChangeFile(event);
 
       // THEN
@@ -347,3 +350,222 @@ describe('Given I am connected as an employee', () => {
   // FIN TEST_3_HANDLE_SUBMIT
   //---------------------------------------------------------------------------------------//
 });
+
+//----------------------------------------------------------------//
+//-----------------TESTS D'INTEGRATION POST-----------------------//
+//----------------------------------------------------------------//
+describe('Given I am connected as an employee', () => {
+  describe('When I upload a file on NewBill page', () => {
+    // TEST 1 : POST RÉUSSI
+    test('Then file is sent to API via POST and stored in instance', async () => {
+      // GIVEN : Formulaire NewBill + fichier valide
+      // 1. Préparer DOM avec formulaire NewBill
+      document.body.innerHTML = NewBillUI();
+
+      // 2. Simulation Employee connecté
+      window.localStorage.setItem(
+        'user',
+        JSON.stringify({ email: 'employee@test.com' })
+      );
+
+      // 3. Mock du store qui retourne succès
+      const mockCreate = jest.fn().mockResolvedValue({
+        fileUrl: 'https://localhost:3456/images/test.jpg',
+        key: '1234',
+      });
+      const mockBills = { create: mockCreate };
+      const store = { bills: jest.fn(() => mockBills) };
+
+      // 4. Creation instance de NewBill
+      const onNavigate = jest.fn();
+      const newBillInstance = new NewBill({
+        document,
+        onNavigate,
+        store,
+        localStorage: window.localStorage,
+      });
+
+      // WHEN : L'employé upload un fichier valide
+      // 1. Récupérer l'input file
+      const fileInput = screen.getByTestId('file');
+
+      // 2. Créer faux .jpg
+      const file = new File(['contenu'], 'facture.jpg', {
+        type: 'image/jpg',
+      });
+
+      // 3. Simulation sélection fichier
+      Object.defineProperty(fileInput, 'files', {
+        value: [file],
+      });
+
+      // 4. Creation événement change
+      const event = {
+        preventDefault: jest.fn(),
+        target: {
+          value: 'C:\\fakepath\\facture.jpg',
+          files: [file],
+        },
+      };
+
+      // 5. Appel handleChangeFile
+      newBillInstance.handleChangeFile(event);
+
+      // 6. Attendre résolution de promise
+      await new Promise(process.nextTick);
+
+      // THEN : APPEL API et STOCKAGE DATAS
+      // 1. Vérification que create() a été appelé
+      expect(mockCreate).toHaveBeenCalled();
+
+      // 2. Vérification que formData contient le fichier
+      expect(mockCreate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.any(FormData),
+          headers: expect.objectContaining({
+            noContentType: true,
+          }),
+        })
+      );
+
+      // 3. Vérification fileUrl est stocké dans instance
+      expect(newBillInstance.fileUrl).toBe(
+        'https://localhost:3456/images/test.jpg'
+      );
+
+      // 4. Vérification billId (key) est stocké dans instance
+      expect(newBillInstance.billId).toBe('1234');
+
+      // 5. Vérification fileName est stocké
+      expect(newBillInstance.fileName).toBe('facture.jpg');
+    });
+
+    // TESTS 2 & 3 : GESTION ERREURS API
+    describe('When an error occurs on API', () => {
+      // TEST 2 : ERREUR 404
+      test('Then uploading a file fails with 404 error', async () => {
+        // GIVEN : Mock du store qui retourne une erreur 404
+        // 1. Préparation DOM
+        document.body.innerHTML = NewBillUI();
+
+        // 2. Simulation utilisateur connecté
+        window.localStorage.setItem(
+          'user',
+          JSON.stringify({ email: 'employee@test.com' })
+        );
+
+        // 3. Mock qui rejette avec erreur 404
+        const mockCreate = jest.fn().mockRejectedValue(new Error('Erreur 404'));
+        const mockBills = { create: mockCreate };
+        const store = { bills: jest.fn(() => mockBills) };
+
+        // 4. Créer instance de NewBill
+        const newBillInstance = new NewBill({
+          document,
+          onNavigate: jest.fn(),
+          store,
+          localStorage: window.localStorage,
+        });
+
+        // 5. Mock console.error pour capturer erreur
+        console.error = jest.fn();
+
+        // WHEN : Employé upload un fichier
+        const fileInput = screen.getByTestId('file');
+        const file = new File(['contenu'], 'facture.jpg', {
+          type: 'image/jpg',
+        });
+        Object.defineProperty(fileInput, 'files', {
+          value: [file],
+        });
+
+        const event = {
+          preventDefault: jest.fn(),
+          target: {
+            value: 'C:\\fakepath\\facture.jpg',
+            files: [file],
+          },
+        };
+
+        newBillInstance.handleChangeFile(event);
+        await new Promise(process.nextTick);
+
+        // THEN : Erreur capturée
+        // 1. Vérification que create() a été appelé
+        expect(mockCreate).toHaveBeenCalled();
+
+        // 2. Vérification erreur loggée
+        expect(console.error).toHaveBeenCalled();
+
+        // 3. Vérification fileUrl null ou undefined
+        expect(newBillInstance.fileUrl).toBeFalsy();
+
+        // 4. Vérification billId null ou undefined
+        expect(newBillInstance.billId).toBeFalsy();
+      });
+
+      // TEST 3 : ERREUR 500
+      test('Then uploading a file fails with 500 error', async () => {
+        // GIVEN : Mock du store qui retourne erreur 500
+
+        // 1. Préparation du DOM
+        document.body.innerHTML = NewBillUI();
+
+        // 2. Simulation employé connecté
+        window.localStorage.setItem(
+          'user',
+          JSON.stringify({ email: 'employee@test.com' })
+        );
+
+        // 3. Mock qui rejette avec erreur 500
+        const mockCreate = jest.fn().mockRejectedValue(new Error('Erreur 500'));
+        const mockBills = { create: mockCreate };
+        const store = { bills: jest.fn(() => mockBills) };
+
+        // 4. Creation instance de NewBill
+        const newBillInstance = new NewBill({
+          document,
+          onNavigate: jest.fn(),
+          store,
+          localStorage: window.localStorage,
+        });
+
+        // 5. Mock console.error pour capturer erreur
+        console.error = jest.fn();
+
+        // WHEN : L'employé upload un fichier
+        const fileInput = screen.getByTestId('file');
+        const file = new File(['contenu'], 'facture.jpg', {
+          type: 'image/jpg',
+        });
+        Object.defineProperty(fileInput, 'files', {
+          value: [file],
+        });
+
+        const event = {
+          preventDefault: jest.fn(),
+          target: {
+            value: 'C:\\fakepath\\facture.jpg',
+            files: [file],
+          },
+        };
+
+        newBillInstance.handleChangeFile(event);
+        await new Promise(process.nextTick);
+
+        // THEN : Erreur capturée
+        // 1. Vérification create() a été appelé
+        expect(mockCreate).toHaveBeenCalled();
+
+        // 2. Vérification erreur loggé
+        expect(console.error).toHaveBeenCalled();
+
+        // 3. Vérification fileUrl null ou undefined
+        expect(newBillInstance.fileUrl).toBeFalsy();
+
+        // 4. Vérification billId null ou undefined
+        expect(newBillInstance.billId).toBeFalsy();
+      });
+    }); // FIN describe "When an error occurs on API"
+  }); // FIN describe "When I upload a file on NewBill page"
+}); // FIN describe "Given I am connected as an employee"
