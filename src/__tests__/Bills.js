@@ -7,16 +7,19 @@ import BillsUI from '../views/BillsUI.js';
 import { bills } from '../fixtures/bills.js';
 import { ROUTES_PATH } from '../constants/routes.js';
 import { localStorageMock } from '../__mocks__/localStorage.js';
+import mockStore from '../__mocks__/store';
 import Bills from '../containers/Bills.js';
 import router from '../app/Router.js';
 
+// ========================================
+// TESTS UNITAIRES
+// ========================================
 describe('Given I am connected as an employee', () => {
   describe('When I am on Bills Page', () => {
-    //----------------------------------------------------------------------------------//
     // DEBUT TEST BILL ICON
     test('Then bill icon in vertical layout should be highlighted', async () => {
       // GIVEN : Je suis connecté en tant qu'employé
-      // On simule localStorage
+      // Simulation localStorage
       Object.defineProperty(window, 'localStorage', {
         value: localStorageMock,
       });
@@ -46,8 +49,8 @@ describe('Given I am connected as an employee', () => {
       // Récupération icône "window" depuis le DOM
       const windowIcon = screen.getByTestId('icon-window');
 
-      // THEN : L'icône devrait être mise en surbrillance
-      // Vérification que l'icône possède la classe CSS 'active-icon'
+      // THEN : L'icône devrait être en surbrillance
+      // Vérification que icône possède la classe CSS 'active-icon'
       expect(windowIcon.classList.contains('active-icon')).toBeTruthy();
     });
     // FIN TEST BILL ICON
@@ -67,13 +70,13 @@ describe('Given I am connected as an employee', () => {
     // DEBUT TEST_1_NEW_BILL_BUTTON_NAVIGATION
     test("Then clicking on 'Nouvelle note de frais' button should navigate to NewBill page", () => {
       // GIVEN
-      // 1. Créer le HTML de la page Bills
+      // 1. Créer HTML de page Bills
       document.body.innerHTML = BillsUI({ data: bills });
 
-      // 2. Créer une fonction mock (espion) pour surveiller onNavigate
+      // 2. Créer fonction mock (espion) pour surveiller onNavigate
       const onNavigate = jest.fn();
 
-      // 3. Créer une instance de Bills pour attacher les événements
+      // 3. Créer une instance de Bills pour attacher événements
       // eslint-disable-next-line no-unused-vars
       const billsContainer = new Bills({
         document,
@@ -83,10 +86,10 @@ describe('Given I am connected as an employee', () => {
       });
 
       // WHEN
-      // 1. Récupérer le bouton "Nouvelle note de frais"
+      // 1. Récupérer bouton "Nouvelle note de frais"
       const buttonNewBill = screen.getByTestId('btn-new-bill');
 
-      // 2. Simuler un clic
+      // 2. Simuler clic
       buttonNewBill.click();
 
       // THEN
@@ -235,3 +238,117 @@ describe('Given I am connected as an employee', () => {
     // FIN TEST_GET_BILLS_FORMAT_ERROR
   });
 });
+
+// ========================================
+// TESTS D'INTÉGRATION GET
+// ========================================
+describe('Given I am connected as an employee', () => {
+  describe('When I navigate to Bills page', () => {
+    // TEST 1 : CAS NOMINAL (SUCCÈS)
+    test('fetches bills from mock API GET', async () => {
+      // GIVEN : Je suis connecté en tant qu'employé
+      // 1. Simuler utilisateur Employee dans localStorage
+      localStorage.setItem(
+        'user',
+        JSON.stringify({ type: 'Employee', email: 'a@a' })
+      );
+      // 2. Créer conteneur principal de l'application
+      const root = document.createElement('div');
+      root.setAttribute('id', 'root');
+      document.body.append(root);
+
+      // 3. Initialiser routeur
+      router();
+
+      // WHEN : Je navigue vers la page Bills
+      window.onNavigate(ROUTES_PATH.Bills);
+
+      // THEN : Les bills sont affichées
+
+      // 1. Attendre que la page soit chargée
+      await waitFor(() => screen.getByText('Mes notes de frais'));
+
+      // 2. Vérifier qu'au moins une icône "œil" existe
+      const iconEye = screen.getAllByTestId('icon-eye');
+      expect(iconEye.length).toBeGreaterThan(0);
+
+      // 3. Vérifier que bouton "Nouvelle note de frais" existe
+      const newBillBtn = screen.getByTestId('btn-new-bill');
+      expect(newBillBtn).toBeTruthy();
+    });
+
+    // TESTS 2 & 3 : GESTION ERREURS API
+    describe('When an error occurs on API', () => {
+      // TEST 2 : ERREUR 404
+      test('fetches bills from an API and fails with 404 message error', async () => {
+        // GIVEN : Mock du store qui retourne une erreur 404
+
+        // Simuler utilisateur connecté
+        localStorage.setItem(
+          'user',
+          JSON.stringify({ type: 'Employee', email: 'a@a' })
+        );
+
+        // Mock du store qui rejette avec une erreur 404
+        const mockStoreError = {
+          bills: jest.fn(() => ({
+            list: jest.fn(() => Promise.reject(new Error('Erreur 404'))),
+          })),
+        };
+
+        // Créer instance de Bills avec store qui retourne une erreur
+        const bills = new Bills({
+          document,
+          onNavigate,
+          store: mockStoreError,
+          localStorage: window.localStorage,
+        });
+
+        // WHEN : Appel getBills()
+        const result = await bills.getBills();
+
+        // THEN : Une erreur est retournée
+        // Vérifier que résultat = Error
+        expect(result).toBeInstanceOf(Error);
+
+        // Vérifier que message d'erreur est correct
+        expect(result.message).toBe('Erreur 404');
+      });
+
+      // TEST 3 : ERREUR 500
+      test('fetches messages from an API and fails with 500 message error', async () => {
+        // GIVEN : Mock du store qui retourne erreur 500
+        // Simuler utilisateur connecté
+        localStorage.setItem(
+          'user',
+          JSON.stringify({ type: 'Employee', email: 'a@a' })
+        );
+
+        // Mock du store qui rejette avec erreur 500
+        const mockStoreError = {
+          bills: jest.fn(() => ({
+            list: jest.fn(() => Promise.reject(new Error('Erreur 500'))),
+          })),
+        };
+
+        // Créer instance de Bills avec store qui retourne erreur
+        const bills = new Bills({
+          document,
+          onNavigate,
+          store: mockStoreError,
+          localStorage: window.localStorage,
+        });
+
+        // WHEN : Appel getBills()
+        const result = await bills.getBills();
+
+        // THEN : Une erreur est retournée
+        // Vérifier que résultat = Error
+        expect(result).toBeInstanceOf(Error);
+
+        // Vérifier que message d'erreur est correct
+        expect(result.message).toBe('Erreur 500');
+      });
+    }); // FIN describe "When an error occurs on API"
+  }); // FIN describe "When I navigate to Bills page"
+}); // FIN describe "Given I am connected as an employee"
