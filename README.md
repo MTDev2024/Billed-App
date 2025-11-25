@@ -6,6 +6,10 @@ Application de gestion de notes de frais - Projet 9 OpenClassrooms
 
 Application SaaS permettant aux employés de soumettre des notes de frais et aux administrateurs RH de les valider.
 
+#### Page de connexion
+![Login](screenshots/login-page.png)
+
+
 ## 🎯 Travail réalisé
 
 ### Bugs corrigés
@@ -21,6 +25,17 @@ Application SaaS permettant aux employés de soumettre des notes de frais et aux
 - **Tests d'intégration POST NewBill.js** : 3 tests (upload fichier avec gestion erreurs)
 - **Couverture globale** : 89.76% (objectif : 80% ✅)
 - **Total** : 57 tests qui passent
+
+### Résultats des tests
+
+#### Tests Jest - 57 tests passent avec succès
+![Tests Jest](screenshots/rapport-tests-jest.png)
+
+#### Couverture globale - 89.76%
+![Couverture globale](screenshots/rapport-couverture-global.png)
+
+
+
 
 ## 🛠️ Installation
 
