@@ -1,94 +1,120 @@
+# Billed App - Frontend
 
-## L'architecture du projet :
-Ce projet, dit frontend, est connecté à un service API backend que vous devez aussi lancer en local.
+Application de gestion de notes de frais - Projet 9 OpenClassrooms
 
-Le projet backend se trouve ici: https://github.com/OpenClassrooms-Student-Center/Billed-app-FR-back
+## 📋 Description
 
-## Organiser son espace de travail :
-Pour une bonne organization, vous pouvez créer un dossier bill-app dans lequel vous allez cloner le projet backend et par la suite, le projet frontend:
+Application SaaS permettant aux employés de soumettre des notes de frais et aux administrateurs RH de les valider.
 
-Clonez le projet backend dans le dossier bill-app :
-```
-$ git clone https://github.com/OpenClassrooms-Student-Center/Billed-app-FR-Back.git
-```
+## 🎯 Travail réalisé
 
-```
-bill-app/
-   - Billed-app-FR-Back
-```
+### Bugs corrigés
+- **Bug #1** : Tri antichronologique des dates dans Bills.js
+- **Bug #2** : Login administrateur (sélecteurs data-testid incorrects)
+- **Bug #3** : Validation des formats de fichiers (jpg, jpeg, png uniquement)
+- **Bug #4** : Ouverture simultanée de plusieurs listes dans le Dashboard
+- **Bonus** : Correction de bugs querySelector avec backticks (Bills.js et NewBill.js)
 
-Clonez le projet frontend dans le dossier bill-app :
-```
-$ git clone https://github.com/OpenClassrooms-Student-Center/Billed-app-FR-Front.git
-```
+### Tests ajoutés
+- **Tests unitaires NewBill.js** : 5 tests (validation extensions + handleSubmit)
+- **Tests d'intégration GET Bills.js** : 3 tests (succès, erreur 404, erreur 500)
+- **Tests d'intégration POST NewBill.js** : 3 tests (upload fichier avec gestion erreurs)
+- **Couverture globale** : 89.76% (objectif : 80% ✅)
+- **Total** : 57 tests qui passent
 
-```
-bill-app/
-   - Billed-app-FR-Back
-   - Billed-app-FR-Front
-```
+## 🛠️ Installation
 
-## Comment lancer l'application en local ?
+### Prérequis
+- Node.js v16 ou v18
+- npm
 
-### étape 1 - Lancer le backend :
-
-Suivez les indications dans le README du projet backend.
-
-### étape 2 - Lancer le frontend :
-
-Allez au repo cloné :
-```
-$ cd Billed-app-FR-Front
+### 1. Cloner le projet
+```bash
+git clone https://github.com/MTDev2024/Billed-App.git
+cd Billed-App
 ```
 
-Installez les packages npm (décrits dans `package.json`) :
-```
-$ npm install
-```
-
-Installez live-server pour lancer un serveur local :
-```
-$ npm install -g live-server
+### 2. Installer les dépendances
+```bash
+npm install
 ```
 
-Lancez l'application :
-```
-$ live-server
-```
-
-Puis allez à l'adresse : `http://127.0.0.1:8080/`
-
-
-## Comment lancer tous les tests en local avec Jest ?
-
-```
-$ npm run test
+### 3. Installer live-server (si pas déjà installé)
+```bash
+npm install -g live-server
 ```
 
-## Comment lancer un seul test ?
+### 4. Lancer le backend (requis)
 
-Installez jest-cli :
-
+**Note :** Le backend doit tourner en parallèle.
+```bash
+# Dans un terminal séparé
+git clone https://github.com/OpenClassrooms-Student-Center/Billed-app-FR-Back.git
+cd Billed-app-FR-Back
+npm install
+npm run run:dev
 ```
-$npm i -g jest-cli
-$jest src/__tests__/your_test_file.js
+
+Backend sur **http://localhost:5678**
+
+### 5. Lancer le frontend
+```bash
+# Dans le dossier Billed-App
+live-server
 ```
 
-## Comment voir la couverture de test ?
+Frontend sur **http://127.0.0.1:8080/**
 
-`http://127.0.0.1:8080/coverage/lcov-report/`
+## 🧪 Tests
 
-## Comptes et utilisateurs :
+### Lancer tous les tests
+```bash
+npm run test
+```
 
-Vous pouvez vous connecter en utilisant les comptes:
+### Lancer un test spécifique
+```bash
+npm i -g jest-cli
+jest src/__tests__/Bills.js
+```
 
-### administrateur : 
+### Voir le rapport de couverture
+```bash
+npm run test
+# Ouvrir : http://127.0.0.1:8080/coverage/lcov-report/
 ```
-utilisateur : admin@test.tld 
-mot de passe : admin
-```
-### employé :
-```
-utilisateur : employee@test.tld
-mot de passe : employee
-```
+
+## 👤 Comptes de test
+
+**Administrateur RH :**
+- Email : `admin@test.tld`
+- Password : `admin`
+
+**Employé :**
+- Email : `employee@test.tld`
+- Password : `employee`
+
+## 📚 Technologies
+
+**Frontend :**
+- HTML5, CSS3, JavaScript (ES6+)
+- Jest, Testing Library
+- Live-server
+
+**Backend :**
+- Node.js, Express, SQLite
+- JWT (authentification)
+
+**Outils :**
+- Chrome DevTools (debugging)
+- ESLint, Prettier
+- Git, GitHub
+
+## 🔗 Liens utiles
+
+- [Backend repository](https://github.com/OpenClassrooms-Student-Center/Billed-app-FR-Back)
+- [Frontend original](https://github.com/OpenClassrooms-Student-Center/Billed-app-FR-Front)
+
+## 📝 Auteur
+
+Projet réalisé dans le cadre de la formation Développeur Web d'OpenClassrooms.
